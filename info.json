@@ -1,0 +1,11 @@
+{
+  "Id": "Sandbox",
+  "DisplayName": "Sandbox",
+  "Author": "Zeibach",
+  "Version": "0.3.0",
+  "LoadAfter": ["HeadsUpDisplay"],
+  "AssemblyName": "Sandbox.dll",
+  "EntryMethod": "DvMod.Sandbox.Main.Load",
+  "HomePage": "",
+  "Repository": "https://raw.githubusercontent.com/mspielberg/dv-sandbox/master/resources/repository.json"
+}
