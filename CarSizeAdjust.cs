@@ -3,11 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
+/*
 namespace DvMod.Sandbox
 {
     public static class PassengerCarSizeAdjust
     {
-        const float SizeMultiplier = 0.8f;
+        private const float SizeMultiplier = 0.8f;
 
         private static bool IsPassengerCar(TrainCar car)
         {
@@ -100,3 +101,4 @@ namespace DvMod.Sandbox
         }
     }
 }
+*/
