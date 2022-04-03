@@ -1,11 +1,16 @@
+using CCL_GameScripts;
 using CommandTerminal;
 using DV.CabControls.Spec;
 using DV.Logic.Job;
 using DV.ServicePenalty;
+using DV.Signs;
 using HarmonyLib;
 using System;
+using System.Collections.Generic;
 using System.Linq;
+using TMPro;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 namespace DvMod.Sandbox
 {
@@ -50,6 +55,15 @@ namespace DvMod.Sandbox
 
             Register("dumpInterior", _ =>
             {
+                if (PlayerManager.Car?.interior != null)
+                {
+                    var dump = PlayerManager.Car.interior.gameObject.DumpHierarchy();
+                    Debug.Log(dump);
+                }
+            });
+
+            Register("dumpLoadedInterior", _ =>
+            {
                 if (PlayerManager.Car?.loadedInterior != null)
                 {
                     var dump = PlayerManager.Car.loadedInterior.DumpHierarchy();
@@ -62,6 +76,13 @@ namespace DvMod.Sandbox
                 Physics.IgnoreLayerCollision(
                     LayerMask.NameToLayer(args[0].String),
                     LayerMask.NameToLayer(args[1].String));
+            });
+
+            Register("dumptractionmult", _ =>
+            {
+                var car = PlayerManager.Car;
+                var controller = car.transform.GetComponentInChildren<LocoControllerBase>();
+                Terminal.Log(controller.tractionTorqueMult.ToString());
             });
 
             // Register("addwheel", _ =>
@@ -93,7 +114,7 @@ namespace DvMod.Sandbox
 
             Register("movewheel", args =>
             {
-                var wheelTransform = PlayerManager.Car?.transform?.GetComponentInChildren<Wheel>().gameObject.GetComponent<Transform>();
+                var wheelTransform = PlayerManager.Car?.interior?.GetComponentInChildren<Wheel>().gameObject.GetComponent<Transform>();
                 if (wheelTransform == null)
                 {
                     Terminal.Log("Current car has no brake wheel");
@@ -540,6 +561,272 @@ namespace DvMod.Sandbox
                 {
                     Terminal.Log("Rear:");
                     dumpJoint(coupler.springyCJ);
+                }
+            });
+
+            Register("dumpsigns", _ =>
+            {
+                foreach (var sign in Component.FindObjectsOfType<SignDebug>())
+                {
+                    Terminal.Log(sign.gameObject.DumpHierarchy());
+                }
+            });
+
+            Register("mphsigns", _ =>
+            {
+                var logged = new HashSet<float>();
+                foreach (var sign in Component.FindObjectsOfType<SignDebug>())
+                {
+                    foreach (var tmp in sign.transform.GetComponentsInChildren<TextMeshPro>())
+                    {
+                        var text = tmp.text;
+                        if (text.Length > 0 && text.All(char.IsDigit))
+                        {
+                            if (float.TryParse(text, out var kmh))
+                            {
+                                var mph = Mathf.RoundToInt(kmh  * 10f * 0.621371f / 5) * 5;
+                                tmp.text = mph.ToString();
+                                if (!logged.Contains(kmh))
+                                {
+                                    Terminal.Log($"{kmh} -> {mph}");
+                                    logged.Add(kmh);
+                                }
+                            }
+                            else
+                            {
+                                Terminal.Log($"Could not parse: '{text}");
+                            }
+                        }
+                    }
+                }
+            });
+
+            Register("speedsignsize", args =>
+            {
+                foreach (var sign in Component.FindObjectsOfType<SignDebug>())
+                {
+                    foreach (var tmp in sign.transform.GetComponentsInChildren<TextMeshPro>())
+                    {
+                        if (tmp.text.All(char.IsDigit))
+                        {
+                            if (args.Length > 0)
+                            {
+                                    tmp.fontSize = args[0].Float; }
+                            else
+                            {
+                                Terminal.Log($"{tmp.text} (size={tmp.fontSizeMin},{tmp.fontSize},{tmp.fontSizeMax})");
+                            }
+                        }
+                    }
+                }
+            });
+
+            Register("speedsignmargin", args =>
+            {
+                foreach (var sign in Component.FindObjectsOfType<SignDebug>())
+                {
+                    foreach (var tmp in sign.transform.GetComponentsInChildren<TextMeshPro>())
+                    {
+                        if (tmp.text.All(char.IsDigit))
+                        {
+                        if (args.Length > 0)
+                            {
+                                    tmp.margin = Vector4.one * args[0].Float;
+                            }
+                            else
+                            {
+                                Terminal.Log($"{tmp.text} (size={tmp.margin})");
+                            }
+                        }
+                    }
+                }
+            });
+
+            Register("dumplighting", _ =>
+            {
+                static void DumpLight(Light l)
+                {
+                    Terminal.Log(
+                        $"{l.GetPath()}: " +
+                        $"type={l.type}," +
+                        $"color={l.color}," +
+                        $"intensity={l.intensity}," +
+                        $"renderMode={l.renderMode}," +
+                        ""
+                    );
+                }
+                Terminal.Log(
+                    $"ambientSkyboxAmount={RenderSettings.ambientSkyboxAmount}," +
+                    $"haloStrength={RenderSettings.haloStrength}," +
+                    $"defaultReflectionResolution={RenderSettings.defaultReflectionResolution}," +
+                    $"defaultReflectionMode={RenderSettings.defaultReflectionMode}," +
+                    $"reflectionBounces={RenderSettings.reflectionBounces}," +
+                    $"reflectionIntensity={RenderSettings.reflectionIntensity}," +
+                    $"customReflection={RenderSettings.customReflection}," +
+                    $"ambientProbe={RenderSettings.ambientProbe}," +
+                    $"sun={RenderSettings.sun}," +
+                    $"skybox={RenderSettings.skybox}," +
+                    $"subtractiveShadowColor={RenderSettings.subtractiveShadowColor}," +
+                    $"flareStrength={RenderSettings.flareStrength}," +
+                    $"ambientLight={RenderSettings.ambientLight}," +
+                    $"ambientGroundColor={RenderSettings.ambientGroundColor}," +
+                    $"ambientEquatorColor={RenderSettings.ambientEquatorColor}," +
+                    $"ambientSkyColor={RenderSettings.ambientSkyColor}," +
+                    $"ambientMode={RenderSettings.ambientMode}," +
+                    $"fogDensity={RenderSettings.fogDensity}," +
+                    $"fogColor={RenderSettings.fogColor}," +
+                    $"fogMode={RenderSettings.fogMode}," +
+                    $"fogEndDistance={RenderSettings.fogEndDistance}," +
+                    $"fogStartDistance={RenderSettings.fogStartDistance}," +
+                    $"fog={RenderSettings.fog}," +
+                    $"ambientIntensity={RenderSettings.ambientIntensity}," +
+                    $"flareFadeSpeed={RenderSettings.flareFadeSpeed}," +
+                    ""
+                );
+                Terminal.Log("Sun:");
+                DumpLight(RenderSettings.sun);
+                foreach (var l in Component.FindObjectsOfType<Light>())
+                    DumpLight(l);
+            });
+
+            Register("dumpassetbundle", args =>
+            {
+                AssetBundle.UnloadAllAssetBundles(false);
+                var bundle = AssetBundle.LoadFromFile(args[0].String);
+                var names = bundle.GetAllAssetNames();
+                foreach (var name in names)
+                {
+                    Terminal.Log(name);
+                    var go = bundle.LoadAsset<GameObject>(names[0]);
+                    var setup = go.GetComponent<TrainCarSetup>();
+                    var interiorPrefab = setup?.InteriorPrefab;
+                    Terminal.Log($"TrainCarSetup={setup}, InteriorPrefab={interiorPrefab}");
+                }
+            });
+
+            Register("dumpcustomsetup", _ =>
+            {
+                var setup = PlayerManager.Car.GetComponent<TrainCarSetup>();
+                Terminal.Log($"interiorPrefab={((setup.InteriorPrefab == null) ? "(null)" : setup.InteriorPrefab.ToString())}");
+            });
+
+            Register("dumpleverspec", args =>
+            {
+                var name = string.Join(" ", args.Select(a => a.String));
+                var interior = PlayerManager.Car.loadedInterior;
+                var transform = Array.Find(interior.transform.GetComponentsInChildren<Transform>(), t => t.name == name);
+                if (transform == null)
+                {
+                    Terminal.Log("could not find transform");
+                    return;
+                }
+                var spec = transform.GetComponent<Lever>();
+                if (spec == null)
+                {
+                    Terminal.Log("Could not find Lever spec");
+                    return;
+                }
+                Terminal.Log(
+                    $"mass={spec.rigidbodyMass}," +
+                    $"drag={spec.rigidbodyDrag}," +
+                    $"angularDrag={spec.rigidbodyAngularDrag}," +
+                    $"stepped={spec.useSteppedJoint}," +
+                    $"notches={spec.notches}," +
+                    $"invertDirection={spec.invertDirection}," +
+                    $"hoverScroll={spec.scrollWheelHoverScroll}," +
+                    $"wheelSpring={spec.scrollWheelSpring}," +
+                    $"axis={spec.jointAxis}," +
+                    $"useSpring={spec.useSpring}," +
+                    $"spring={spec.jointSpring}," +
+                    $"damper={spec.jointDamper}," +
+                    $"useLimits={spec.useLimits}," +
+                    $"min={spec.jointLimitMin}," +
+                    $"max={spec.jointLimitMax}," +
+                    "");
+            });
+
+            Register("setinteriorreflectionprobe", args =>
+            {
+                var interior = PlayerManager.Car.loadedInterior;
+                foreach (var renderer in interior.GetComponentsInChildren<MeshRenderer>())
+                {
+                    var path = renderer.GetPath();
+                    var before = renderer.reflectionProbeUsage;
+                    var after = (ReflectionProbeUsage)args[0].Int;
+                    renderer.reflectionProbeUsage = after;
+                    Terminal.Log($"[{path}] {before} -> {after}");
+                }
+            });
+
+            Register("enumerateinteriorshaders", _ =>
+            {
+                var interior = PlayerManager.Car.loadedInterior;
+                var printed = new HashSet<string>();
+                foreach (var renderer in interior.GetComponentsInChildren<MeshRenderer>())
+                {
+                    var name = renderer?.material?.shader?.name;
+                    if (name != null && !printed.Contains(name))
+                    {
+                        Terminal.Log(name);
+                        printed.Add(name);
+                    }
+                }
+            });
+
+            Register("rotatebrakes", args =>
+            {
+                var car = PlayerManager.Car;
+                foreach (var bogie in car.Bogies)
+                {
+                    foreach (var pad in bogie.transform.Find("bogie_car/bogie2brakes").GetComponentsInChildren<Transform>())
+                    {
+                        if (pad.name.EndsWith("1") || pad.name.EndsWith("2"))
+                        {
+                            Terminal.Log($"old angles: {pad.localEulerAngles}");
+                            pad.localEulerAngles = new Vector3(args[0].Float, args[1].Float, args[2].Float);
+                        }
+                    }
+                }
+            });
+
+            Register("getbrakepositions", args =>
+            {
+                var car = PlayerManager.Car;
+                foreach (var bogie in car.Bogies)
+                {
+                    foreach (var pad in bogie.transform.Find("bogie_car/bogie2brakes").GetComponentsInChildren<Transform>())
+                    {
+                        if (pad.name.EndsWith("1") || pad.name.EndsWith("2"))
+                        {
+                            Terminal.Log($"old position: {pad.localPosition.x},{pad.localPosition.y},{pad.localPosition.z}");
+                        }
+                    }
+                }
+            });
+
+            Register("translatebrakes", args =>
+            {
+                var car = PlayerManager.Car;
+                var offset = args[1].Float;
+                foreach (var bogie in car.Bogies)
+                {
+                    foreach (var pad in bogie.transform.Find("bogie_car/bogie2brakes").GetComponentsInChildren<Transform>())
+                    {
+                        if (pad.name.EndsWith("1"))
+                        {
+                            var position = pad.localPosition;
+                            Terminal.Log($"old position: {pad.localPosition}");
+                            position.z = args[0].Float + offset;
+                            pad.localPosition = position;
+                        }
+                        else if (pad.name.EndsWith("2"))
+                        {
+                            var position = pad.localPosition;
+                            Terminal.Log($"old position: {pad.localPosition}");
+                            position.z = -args[0].Float + offset;
+                            pad.localPosition = position;
+                        }
+                    }
                 }
             });
         }

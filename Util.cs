@@ -12,7 +12,7 @@ namespace DvMod.Sandbox
 
         public static string DumpHierarchy(this GameObject gameObject)
         {
-            return string.Join("\n", gameObject.GetComponentsInChildren<Component>().Select(c => $"{GetPath(c)} {c.GetType()} {c.transform.position} {c.transform.localPosition} {c.transform.lossyScale}"));
+            return string.Join("\n", gameObject.GetComponentsInChildren<Component>().Select(c => $"{GetPath(c)} {c.GetType()} {c.transform.position} {c.transform.localPosition} {c.transform.lossyScale} (active={c.gameObject.activeInHierarchy}/{c.gameObject.activeSelf})"));
         }
     }
 }

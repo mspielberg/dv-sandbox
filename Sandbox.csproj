@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net472</TargetFramework>
+    <TargetFramework>netstandard2.0</TargetFramework>
     <LangVersion>8.0</LangVersion>
     <Nullable>enable</Nullable>
     <RootNamespace>DvMod.Sandbox</RootNamespace>
@@ -15,17 +15,22 @@
     <PackageReference Include="RedworkDE.Publicizer" Version="0.2.2" />
     <PublicizeAssembly Include="Assembly-CSharp" Private="True" Readonly="True" />
     <PublicizeAssembly Include="DV.Interaction" Private="True" Readonly="True" />
+    <PublicizeAssembly Include="Unity.TextMeshPro" Private="True" Readonly="True" />
   </ItemGroup>
 
   <ItemGroup>
     <Reference Include="0Harmony"/>
     <Reference Include="Assembly-CSharp"/>
+    <Reference Include="CCL_GameScripts"/>
     <Reference Include="DV.BrakeSystem"/>
     <Reference Include="DV.Interaction"/>
     <Reference Include="DV.Utils"/>
+    <Reference Include="Unity.TextMeshPro"/>
     <Reference Include="UnityEngine.AudioModule"/>
+    <Reference Include="UnityEngine.AssetBundleModule"/>
     <Reference Include="UnityEngine.CoreModule"/>
     <Reference Include="UnityEngine.PhysicsModule"/>
+    <Reference Include="UnityEngine.UI"/>
     <Reference Include="UnityModManager"/>
   </ItemGroup>
 </Project>
